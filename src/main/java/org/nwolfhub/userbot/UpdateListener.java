@@ -34,7 +34,7 @@ public class UpdateListener {
                     try {
                         UpdateHandler.processUpdate(update);
                     } catch (Exception e) {
-                        System.out.println("Failed to fetch update: " + e);
+                        e.printStackTrace();
                     }
                 }
             } catch (IOException e) {
