@@ -33,7 +33,7 @@ public class UpdateListener {
                     System.out.println("(" + update.peer_id + ") " + update.from_id + ": " + update.text);
                     try {
                         UpdateHandler.processUpdate(update);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         System.out.println("Failed to fetch update: " + e);
                     }
                 }

@@ -79,7 +79,7 @@ public class UpdateHandler {
             }
             //ping
             if(command.equals("ping")) {
-                vk.makeRequest(new MessageSend(update.peer_id, "Pong! Estimated response time: " + (System.currentTimeMillis()/1000 - update.getTimestamp())));
+                vk.makeRequest(new MessageSend(update.peer_id, "Pong!"));
             }
             //who
             if(command.contains("who")) {
