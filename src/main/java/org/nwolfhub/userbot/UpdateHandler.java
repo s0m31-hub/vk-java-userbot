@@ -102,13 +102,19 @@ public class UpdateHandler {
                             regdate = body.split("<ya:created dc:date=\"")[1].split("T")[0];
                         } catch (Exception ignored){}
                         System.out.println(response);
-                        vk.makeRequest(new MessageSend(update.peer_id, "Report for user [id" + id + "|" + response.get("first_name").getAsString() + "]:\nVk id: " + id +
+                        String subs;
+                        try {
+                            subs = response.get("counters").getAsJsonObject().get("followers").getAsString();
+                        } catch (NullPointerException e) {
+                            subs = "Failed to fetch";
+                        }
+                        vk.makeRequest(new MessageSend(update.peer_id, "Report for user [id" + id + "|" + response.get("first_name").getAsString() + "]:\nVK id: " + id +
                                 "\nProfile closed: " + response.get("is_closed").getAsBoolean() +
                                 "\nCan get full profile info: " + response.get("can_access_closed").getAsBoolean() +
                                 "\nFriends: " + response.get("counters").getAsJsonObject().get("friends").getAsInt() +
                                 "\nOnline friends: " + response.get("counters").getAsJsonObject().get("online_friends").getAsInt() +
                                 "\nCommon (mutual) friends: " + response.get("common_count").getAsInt() +
-                                "\nSubscribers: " + response.get("counters").getAsJsonObject().get("followers").getAsInt() +
+                                "\nSubscribers: " + subs +
                                 "\nAmount of pending friend requests (aka following): " + response.get("counters").getAsJsonObject().get("subscriptions").getAsInt() +
                                 "\nAmount of groups: " + response.get("counters").getAsJsonObject().get("pages").getAsInt() +
                                 "\nRegistration date: " + regdate +
