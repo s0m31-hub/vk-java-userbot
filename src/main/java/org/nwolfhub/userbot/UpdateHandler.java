@@ -47,17 +47,21 @@ public class UpdateHandler {
         } catch (NullPointerException e) {
             subs = "Failed to fetch";
         }
-        vk.makeRequest(new MessageSend(update.peer_id, "Report for user [id" + id + "|" + response.get("first_name").getAsString() + "]:\nVK id: " + id +
-                "\nProfile closed: " + response.get("is_closed").getAsBoolean() +
-                "\nCan get full profile info: " + response.get("can_access_closed").getAsBoolean() +
-                "\nFriends: " + response.get("counters").getAsJsonObject().get("friends").getAsInt() +
-                "\nOnline friends: " + response.get("counters").getAsJsonObject().get("online_friends").getAsInt() +
-                "\nCommon (mutual) friends: " + response.get("common_count").getAsInt() +
-                "\nSubscribers: " + subs +
-                "\nAmount of pending friend requests (aka following): " + response.get("counters").getAsJsonObject().get("subscriptions").getAsInt() +
-                "\nAmount of groups: " + response.get("counters").getAsJsonObject().get("pages").getAsInt() +
-                "\nRegistration date: " + regdate +
-                "\nEnd of report"));
+        try {
+            vk.makeRequest(new MessageSend(update.peer_id, "Report for user [id" + id + "|" + response.get("first_name").getAsString() + "]:\nVK id: " + id +
+                    "\nProfile closed: " + response.get("is_closed").getAsBoolean() +
+                    "\nCan get full profile info: " + response.get("can_access_closed").getAsBoolean() +
+                    "\nFriends: " + response.get("counters").getAsJsonObject().get("friends").getAsInt() +
+                    "\nOnline friends: " + response.get("counters").getAsJsonObject().get("online_friends").getAsInt() +
+                    "\nCommon (mutual) friends: " + response.get("common_count").getAsInt() +
+                    "\nSubscribers: " + subs +
+                    "\nAmount of pending friend requests (aka following): " + response.get("counters").getAsJsonObject().get("subscriptions").getAsInt() +
+                    "\nAmount of groups: " + response.get("counters").getAsJsonObject().get("pages").getAsInt() +
+                    "\nRegistration date: " + regdate +
+                    "\nEnd of report"));
+        } catch (Exception e) {
+            vk.makeRequest(new MessageSend(update.peer_id, "Failed to get user " + id));
+        }
     }
 
     public static void processUpdate(NewMessageUpdate update) throws IOException, InterruptedException { //getting all functions in 1 class is a shitcode, but I don't really care tbh
@@ -122,11 +126,13 @@ public class UpdateHandler {
                 vk.makeRequest(new MessageSend(update.peer_id, "Pong!"));
             }
             //who
-            if(command.contains("who")) {
+            if(command.contains("who") && !command.contains("chatwho")) {
                 if(parsed.length == 2) {
                     if(parsed[0].equals("who")) {
                         who(update, parsed);
                     }
+                } else if(parsed.length==1) {
+                    who(update, new String[]{"", "[id" + (update.peer_id) + "|"});
                 }
             }
             //chatwho
@@ -145,6 +151,18 @@ public class UpdateHandler {
                         Thread.sleep(1000);
                         vk.makeRequest(new MessageSend(update.peer_id, "End of chat report"));
                     }
+                } else if (parsed.length==1) {
+                    String response = vk.makeRequest(new org.nwolfhub.vk.requests.Request("messages.getChat", "chat_id=" + (update.peer_id - 2000000000)));
+                    JsonArray users = JsonParser.parseString(response).getAsJsonObject().get("response").getAsJsonObject().get("users").getAsJsonArray();
+                    for(JsonElement userElement:users) {
+                        Integer id = userElement.getAsInt();
+                        if(id>0) {
+                            who(update, new String[]{"", "[id" + id + "|"});
+                            Thread.sleep(new Random().nextInt(5000));
+                        }
+                    }
+                    Thread.sleep(1000);
+                    vk.makeRequest(new MessageSend(update.peer_id, "End of chat report"));
                 }
             }
         }

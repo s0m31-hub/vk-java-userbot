@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>org.nwolfhub</groupId>
 	<artifactId>userbot</artifactId>
-	<version>0.2.0</version>
+	<version>0.2.1</version>
 	<name>Userbot</name>
 	<description>Userbot written on java with spring core and vklib</description>
 	<properties>
