@@ -1,5 +1,7 @@
 package org.nwolfhub.userbot;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import okhttp3.Request;
@@ -12,6 +14,7 @@ import org.nwolfhub.vkUser.longpoll.updates.NewMessageUpdate;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Random;
 
 public class UpdateHandler {
     private static Vk vk;
@@ -20,7 +23,44 @@ public class UpdateHandler {
         UpdateHandler.vk = vk;
     }
 
-    public static void processUpdate(NewMessageUpdate update) throws IOException { //getting all functions in 1 class is a shitcode, but I don't really care tbh
+    public static void who(NewMessageUpdate update, String[] parsed) throws IOException {
+        Integer id = 0;
+        if(parsed[1].contains("[")) {
+            try {
+                id = Integer.valueOf(parsed[1].split("\\[id")[1].split("\\|")[0]);
+            } catch (NumberFormatException e) {
+                vk.makeRequest(new MessageSend(update.peer_id, "Failed to parse id from " + parsed[1] + ": " + e));
+            }
+        }
+        JsonObject response = JsonParser.parseString(vk.makeRequest(new UsersGet(id.toString(), "counters,common_count", "nom"))).getAsJsonObject().get("response").getAsJsonArray().get(0).getAsJsonObject();
+        String regdate = "failed to obtain";
+        try {
+            Response r = vk.client.newCall(new Request.Builder().url("https://vk.com/foaf.php?id=" + id).build()).execute();
+            String body = r.body().string();
+            r.close();
+            regdate = body.split("<ya:created dc:date=\"")[1].split("T")[0];
+        } catch (Exception ignored){}
+        System.out.println(response);
+        String subs;
+        try {
+            subs = response.get("counters").getAsJsonObject().get("followers").getAsString();
+        } catch (NullPointerException e) {
+            subs = "Failed to fetch";
+        }
+        vk.makeRequest(new MessageSend(update.peer_id, "Report for user [id" + id + "|" + response.get("first_name").getAsString() + "]:\nVK id: " + id +
+                "\nProfile closed: " + response.get("is_closed").getAsBoolean() +
+                "\nCan get full profile info: " + response.get("can_access_closed").getAsBoolean() +
+                "\nFriends: " + response.get("counters").getAsJsonObject().get("friends").getAsInt() +
+                "\nOnline friends: " + response.get("counters").getAsJsonObject().get("online_friends").getAsInt() +
+                "\nCommon (mutual) friends: " + response.get("common_count").getAsInt() +
+                "\nSubscribers: " + subs +
+                "\nAmount of pending friend requests (aka following): " + response.get("counters").getAsJsonObject().get("subscriptions").getAsInt() +
+                "\nAmount of groups: " + response.get("counters").getAsJsonObject().get("pages").getAsInt() +
+                "\nRegistration date: " + regdate +
+                "\nEnd of report"));
+    }
+
+    public static void processUpdate(NewMessageUpdate update) throws IOException, InterruptedException { //getting all functions in 1 class is a shitcode, but I don't really care tbh
         String command = update.text.toLowerCase(Locale.ROOT);
         if(update.from_me) {
             String[] parsed = command.split(" ");
@@ -85,40 +125,25 @@ public class UpdateHandler {
             if(command.contains("who")) {
                 if(parsed.length == 2) {
                     if(parsed[0].equals("who")) {
-                        Integer id = 0;
-                        if(parsed[1].contains("[")) {
-                            try {
-                                id = Integer.valueOf(parsed[1].split("\\[id")[1].split("\\|")[0]);
-                            } catch (NumberFormatException e) {
-                                vk.makeRequest(new MessageSend(update.peer_id, "Failed to parse id from " + parsed[1] + ": " + e));
+                        who(update, parsed);
+                    }
+                }
+            }
+            //chatwho
+            if (command.contains("chatwho")) {
+                if(parsed.length == 2) {
+                    if (parsed[0].equals("chatwho")) {
+                        String response = vk.makeRequest(new org.nwolfhub.vk.requests.Request("messages.getChat", "chat_id=" + Integer.valueOf(parsed[1])));
+                        JsonArray users = JsonParser.parseString(response).getAsJsonObject().get("response").getAsJsonObject().get("users").getAsJsonArray();
+                        for(JsonElement userElement:users) {
+                            Integer id = userElement.getAsInt();
+                            if(id>0) {
+                                who(update, new String[]{"", "[id" + id + "|"});
+                                Thread.sleep(new Random().nextInt(5000));
                             }
                         }
-                        JsonObject response = JsonParser.parseString(vk.makeRequest(new UsersGet(id.toString(), "counters,common_count", "nom"))).getAsJsonObject().get("response").getAsJsonArray().get(0).getAsJsonObject();
-                        String regdate = "failed to obtain";
-                        try {
-                            Response r = vk.client.newCall(new Request.Builder().url("https://vk.com/foaf.php?id=" + id).build()).execute();
-                            String body = r.body().string();
-                            r.close();
-                            regdate = body.split("<ya:created dc:date=\"")[1].split("T")[0];
-                        } catch (Exception ignored){}
-                        System.out.println(response);
-                        String subs;
-                        try {
-                            subs = response.get("counters").getAsJsonObject().get("followers").getAsString();
-                        } catch (NullPointerException e) {
-                            subs = "Failed to fetch";
-                        }
-                        vk.makeRequest(new MessageSend(update.peer_id, "Report for user [id" + id + "|" + response.get("first_name").getAsString() + "]:\nVK id: " + id +
-                                "\nProfile closed: " + response.get("is_closed").getAsBoolean() +
-                                "\nCan get full profile info: " + response.get("can_access_closed").getAsBoolean() +
-                                "\nFriends: " + response.get("counters").getAsJsonObject().get("friends").getAsInt() +
-                                "\nOnline friends: " + response.get("counters").getAsJsonObject().get("online_friends").getAsInt() +
-                                "\nCommon (mutual) friends: " + response.get("common_count").getAsInt() +
-                                "\nSubscribers: " + subs +
-                                "\nAmount of pending friend requests (aka following): " + response.get("counters").getAsJsonObject().get("subscriptions").getAsInt() +
-                                "\nAmount of groups: " + response.get("counters").getAsJsonObject().get("pages").getAsInt() +
-                                "\nRegistration date: " + regdate +
-                                "\nEnd of report"));
+                        Thread.sleep(1000);
+                        vk.makeRequest(new MessageSend(update.peer_id, "End of chat report"));
                     }
                 }
             }
