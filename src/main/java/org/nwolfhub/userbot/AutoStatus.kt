@@ -45,9 +45,10 @@ class AutoStatus {
         private fun work(vk: Vk, phrases: Array<String>) {
             val r = Random
             while (true) {
-                //phrases[r.nextInt(phrases.size)]
-                vk.makeRequest(StatusSet(changeVars(phrases[r.nextInt(phrases.size)], vk)))
-                Thread.sleep(60000)
+                try {
+                    vk.makeRequest(StatusSet(changeVars(phrases[r.nextInt(phrases.size)], vk)))
+                    Thread.sleep(60000)
+                } catch (ignored:java.lang.Exception) {}
             }
         }
     }
