@@ -40,10 +40,17 @@ class AutoStatus {
             var friends = 0
             if(toReturn.contains("{friends}")) {
                 friends = JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get("friends").asInt
+                toReturn = toReturn.replace("{friends}", friends.toString())
             }
-            toReturn = toReturn.replace("{friends}", friends.toString())
             //subs
-            toReturn = toReturn.replace("{subscribers}", JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get("followers").asInt.toString())
+            if(toReturn.contains("{subscribers}")) {
+                toReturn = toReturn.replace(
+                    "{subscribers}",
+                    JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get(
+                        "followers"
+                    ).asInt.toString()
+                )
+            }
             return toReturn
         }
 
