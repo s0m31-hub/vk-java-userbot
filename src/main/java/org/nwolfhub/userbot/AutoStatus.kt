@@ -43,7 +43,6 @@ class AutoStatus {
             }
             toReturn = toReturn.replace("{friends}", friends.toString())
             //subs
-            println(response)
             toReturn = toReturn.replace("{subscribers}", JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get("followers").asInt.toString())
             return toReturn
         }
