@@ -30,7 +30,12 @@ class AutoStatus {
             //time
             toReturn = toReturn.replace("{time}", SimpleDateFormat("hh:mm").format(Date(System.currentTimeMillis())))
             //date
-            toReturn = toReturn.replace("{date}", SimpleDateFormat(toReturn.split("{date}{pattern ")[1].split("}")[0]).format(Date(System.currentTimeMillis())))
+            if(toReturn.contains("{date}")) {
+                toReturn = toReturn.replace(
+                    "{date}",
+                    SimpleDateFormat(toReturn.split("{date}{pattern ")[1].split("}")[0]).format(Date(System.currentTimeMillis()))
+                )
+            }
             //friends
             var friends = 0
             if(toReturn.contains("{friends}")) {
@@ -48,7 +53,9 @@ class AutoStatus {
                 try {
                     vk.makeRequest(StatusSet(changeVars(phrases[r.nextInt(phrases.size)], vk)))
                     Thread.sleep(60000)
-                } catch (ignored:java.lang.Exception) {}
+                } catch (ignored:java.lang.Exception) {
+                    ignored.printStackTrace()
+                }
             }
         }
     }
