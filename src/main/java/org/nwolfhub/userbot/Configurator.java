@@ -29,4 +29,17 @@ public class Configurator {
         vk.setV("5.131");
         return vk;
     }
+
+    @Bean (name = "statuses")
+    public String[] statuses(){
+        File statusFile = new File("statuses.txt");
+        if(statusFile.exists()) {
+            try (FileInputStream in = new FileInputStream(statusFile)) {
+                return new String(in.readAllBytes()).split("\n");
+            } catch (IOException ignored) {}
+        } else {
+            System.out.println("Autostatus will be disabled");
+        }
+        return new String[0];
+    }
 }

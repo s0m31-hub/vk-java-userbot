@@ -14,6 +14,7 @@ public class UpdateListener {
         ApplicationContext context = new AnnotationConfigApplicationContext(Configurator.class);
         Vk vk = context.getBean(Vk.class);
         UpdateHandler.initialize(vk);
+        AutoStatus.Companion.init(vk);
         new Thread(() -> listen(vk)).start();
     }
 
