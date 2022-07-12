@@ -28,7 +28,7 @@ class AutoStatus {
                 response = vk.makeRequest(Request("users.get", "fields=counters"))
             }
             //time
-            toReturn = toReturn.replace("{time}", SimpleDateFormat("hh:mm").format(Date(System.currentTimeMillis())))
+            toReturn = toReturn.replace("{time}", SimpleDateFormat("HH:mm").format(Date(System.currentTimeMillis())))
             //date
             if(toReturn.contains("{date}")) {
                 toReturn = toReturn.replace(
