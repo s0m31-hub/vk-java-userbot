@@ -35,6 +35,8 @@ class AutoStatus {
                     "{date}",
                     SimpleDateFormat(toReturn.split("{date}{pattern ")[1].split("}")[0]).format(Date(System.currentTimeMillis()))
                 )
+                val p = toReturn.split("{pattern ")[1].split("}")[0]
+                toReturn = toReturn.replace("{pattern $p}", "")
             }
             //friends
             var friends = 0
