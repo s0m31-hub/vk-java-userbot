@@ -22,36 +22,42 @@ class AutoStatus {
 
         private fun changeVars(src:String, vk: Vk):String {
             var toReturn = src;
-            toReturn = toReturn.replace("{followers}", "{subscribers}")
-            var response = ""
-            if(toReturn.contains("{friends}") || toReturn.contains("{subscribers}")) {
-                response = vk.makeRequest(Request("users.get", "fields=counters"))
-            }
-            //time
-            toReturn = toReturn.replace("{time}", SimpleDateFormat("HH:mm").format(Date(System.currentTimeMillis())))
-            //date
-            if(toReturn.contains("{date}")) {
-                toReturn = toReturn.replace(
-                    "{date}",
-                    SimpleDateFormat(toReturn.split("{date}{pattern ")[1].split("}")[0]).format(Date(System.currentTimeMillis()))
-                )
-                val p = toReturn.split("{pattern ")[1].split("}")[0]
-                toReturn = toReturn.replace("{pattern $p}", "")
-            }
-            //friends
-            var friends = 0
-            if(toReturn.contains("{friends}")) {
-                friends = JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get("friends").asInt
-                toReturn = toReturn.replace("{friends}", friends.toString())
-            }
-            //subs
-            if(toReturn.contains("{subscribers}")) {
-                toReturn = toReturn.replace(
-                    "{subscribers}",
-                    JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get(
-                        "followers"
-                    ).asInt.toString()
-                )
+            while (toReturn.contains("{")) {
+                toReturn = toReturn.replace("{followers}", "{subscribers}")
+                var response = ""
+                if (toReturn.contains("{friends}") || toReturn.contains("{subscribers}")) {
+                    response = vk.makeRequest(Request("users.get", "fields=counters"))
+                }
+                //time
+                toReturn =
+                    toReturn.replace("{time}", SimpleDateFormat("HH:mm").format(Date(System.currentTimeMillis())))
+                //date
+                if (toReturn.contains("{date}")) {
+                    toReturn = toReturn.replace(
+                        "{date}",
+                        SimpleDateFormat(toReturn.split("{date}{pattern ")[1].split("}")[0]).format(Date(System.currentTimeMillis()))
+                    )
+                    val p = toReturn.split("{pattern ")[1].split("}")[0]
+                    toReturn = toReturn.replace("{pattern $p}", "")
+                }
+                //friends
+                var friends = 0
+                if (toReturn.contains("{friends}")) {
+                    friends =
+                        JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get(
+                            "friends"
+                        ).asInt
+                    toReturn = toReturn.replace("{friends}", friends.toString())
+                }
+                //subs
+                if (toReturn.contains("{subscribers}")) {
+                    toReturn = toReturn.replace(
+                        "{subscribers}",
+                        JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get(
+                            "followers"
+                        ).asInt.toString()
+                    )
+                }
             }
             return toReturn
         }
