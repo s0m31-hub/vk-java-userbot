@@ -22,7 +22,7 @@ class AutoStatus {
 
         private fun changeVars(src:String, vk: Vk):String {
             var toReturn = src;
-            toReturn.replace("{followers}", "{subscribers}")
+            toReturn = toReturn.replace("{followers}", "{subscribers}")
             var response = ""
             if(toReturn.contains("{friends}") || toReturn.contains("{subscribers}")) {
                 response = vk.makeRequest(Request("users.get", "fields=counters"))
@@ -43,18 +43,21 @@ class AutoStatus {
             }
             toReturn = toReturn.replace("{friends}", friends.toString())
             //subs
+            println(response)
             toReturn = toReturn.replace("{subscribers}", JsonParser.parseString(response).asJsonObject.get("response").asJsonArray[0].asJsonObject.get("counters").asJsonObject.get("followers").asInt.toString())
             return toReturn
         }
 
         private fun work(vk: Vk, phrases: Array<String>) {
             val r = Random
+            val another:Vk = AnnotationConfigApplicationContext(Configurator::class.java).getBean("vk") as Vk
             while (true) {
                 try {
-                    vk.makeRequest(StatusSet(changeVars(phrases[r.nextInt(phrases.size)], vk)))
+                    vk.makeRequest(StatusSet(changeVars(phrases[r.nextInt(phrases.size)], another)))
                     Thread.sleep(60000)
                 } catch (ignored:java.lang.Exception) {
                     ignored.printStackTrace()
+                    Thread.sleep(100)
                 }
             }
         }
